@@ -55,9 +55,20 @@ const checkDb = productInfo => {
     }
     if (resp[0].qty >= qty){
       console.log("your purchase has been completed")
-      updateDb(id, qty)
+      let price = parseInt(resp[0].price) * parseInt(qty)
+      console.log("the total cost is: $", price)
+      let newQty = resp[0].qty - qty
+      updateDb(id, newQty)
       return;
     }
     console.log("There is an insufficient quantity of this product, your order has not been filled.")
+  })
+}
+
+const updateDb = (id, qty) => {
+  connection.query("UPDATE products SET qty = ? WHERE id = ?", [qty, id], (err, resp) => {
+    if (err) throw err;
+    console.log("db successfully updated")
+    connection.end()
   })
 }
