@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql');
 
+// connect to the db
 const connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
@@ -17,8 +18,8 @@ connection.connect(err => {
 });
 
 
+// display all results on load
 const afterConnection = () => {
-  // display all results on load
   connection.query("SELECT * FROM products", (err, res) => {
     if (err) throw err;
     console.log(res);
@@ -30,16 +31,33 @@ const afterConnection = () => {
 const prompt = () => {
   inquirer.prompt([
     {
-      name: "idToBuy",
+      name: "id",
       message: "enter the ID for the product you want to buy",
       type: "input"
     },
     {
-      name: "qtyToBuy",
+      name: "qty",
       message: "enter the number of units you want to buy",
       type: "input"
     }
   ]).then(answers => {
-    console.log(answers)
+    checkDb(answers)
+  })
+}
+
+// check the db for user request
+const checkDb = productInfo => {
+  let id = productInfo.id;
+  let qty = productInfo.qty;
+  connection.query("SELECT * FROM products WHERE id = ?", id, (err, resp) => {
+    if (err){
+      return console.log("the product id you entered does not exist")
+    }
+    if (resp[0].qty >= qty){
+      console.log("your purchase has been completed")
+      updateDb(id, qty)
+      return;
+    }
+    console.log("There is an insufficient quantity of this product, your order has not been filled.")
   })
 }
